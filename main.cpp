@@ -20,11 +20,13 @@ int main(int argc,char* argv[])
 
     TRIANGULATED_SURFACE<T>* triangulated_surface=TRIANGULATED_SURFACE<T>::Create();
 
-    std::istream* input=FILE_UTILITIES::Safe_Open_Input("Ruleg.obj",false);
+    std::istream* input=FILE_UTILITIES::Safe_Open_Input("femur.asc",false);
     while(1){
-        std::string token;
-        *input>>token;
-        if(token == "v"){
+    std::string token;
+    *input>>token;
+    float a, b, c, d, e, f;
+
+   	 if(*input>>a>>b>>c>>d>>e>>f){
             VECTOR<T,3> vertex;
             *input>>vertex.x>>vertex.y>>vertex.z;
             LOG::cout<<"Read vertex "<<vertex<<std::endl;
@@ -32,13 +34,13 @@ int main(int argc,char* argv[])
             triangulated_surface->particles.X(p)=vertex;
             continue;
         }
-        if(token == "f"){
+        /*if(token == "f"){
             VECTOR<int,3> face;
             *input>>face.x>>face.y>>face.z;
             LOG::cout<<"Read face "<<face<<std::endl;
             triangulated_surface->mesh.elements.Append(face);
             continue;
-        }
+        }*/
         break;
     }
     triangulated_surface->Update_Number_Nodes();
