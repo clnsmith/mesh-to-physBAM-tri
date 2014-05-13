@@ -20,31 +20,47 @@ int main(int argc,char* argv[])
 
     TRIANGULATED_SURFACE<T>* triangulated_surface=TRIANGULATED_SURFACE<T>::Create();
 
+    //Import File
     std::istream* input=FILE_UTILITIES::Safe_Open_Input("femur.asc",false);
-    while(1){
-    std::string token;
-    *input>>token;
-    float a, b, c, d, e, f;
 
-   	 if(*input>>a>>b>>c>>d>>e>>f){
-            VECTOR<T,3> vertex;
-            *input>>vertex.x>>vertex.y>>vertex.z;
-            LOG::cout<<"Read vertex "<<vertex<<std::endl;
-            int p=triangulated_surface->particles.array_collection->Add_Element();
-            triangulated_surface->particles.X(p)=vertex;
-            continue;
-        }
-        /*if(token == "f"){
-            VECTOR<int,3> face;
-            *input>>face.x>>face.y>>face.z;
-            LOG::cout<<"Read face "<<face<<std::endl;
-            triangulated_surface->mesh.elements.Append(face);
-            continue;
-        }*/
-        break;
+    //Skip First Line
+    std::string dummyLine;
+    getline(*input, dummyLine);
+
+    //Read Second Line to get # of vertices and triangles
+    int numVertex=0, numTriangle=0;
+    *input>>numVertex>>numTriangle;
+    LOG::cout<<numVertex<<numTriangle<<std::endl;
+    
+    //Read Third Line to get bounding box dimensions (not needed for physBAM)
+    float xMin, xMax, yMin, yMax, zMin, zMax;
+    *input>>xMin>>xMax>>yMin>>yMax>>zMin>>zMax;
+    LOG::cout<<"Bounding Box "<<xMin<<' '<<xMax<<' '<<yMin<<' '<<yMax<<' '<<zMin<<' '<<zMax<<std::endl;
+
+    //Read verticies and assign them to physBAM particles
+    VECTOR<T,3> vertex;
+    VECTOR<T,3> normal; //used as a place holder, physBAM doesn't need these
+
+    for(int i=0; i < numVertex; i++){
+        *input>>vertex.x>>vertex.y>>vertex.z>>normal.x>>normal.y>>normal.z; 
+        LOG::cout<<"Read vertex "<<vertex<<std::endl;
+        int p=triangulated_surface->particles.array_collection->Add_Element();
+        triangulated_surface->particles.X(p)=vertex;
     }
+
+
+    //Read triangles and assign them to physBAM mesh.elements
+    float dimension; //used as place holder, describes triangle mesh in .asc file
+    VECTOR<int,3> triangle;
+
+    for(int j=0; j < numTriangle; j++){
+        *input>>dimension>>triangle.x>>triangle.y>>triangle.z;
+            LOG::cout<<"Read triangle "<<triangle<<std::endl;
+            triangulated_surface->mesh.elements.Append(triangle);
+    }        
+    
     triangulated_surface->Update_Number_Nodes();
-    FILE_UTILITIES::Write_To_File(stream_type,"leg.tri",*triangulated_surface);
+    FILE_UTILITIES::Write_To_File(stream_type,"femur.tri",*triangulated_surface);
 
     delete input;
 
